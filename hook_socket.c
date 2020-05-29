@@ -33,7 +33,7 @@ static PVOID alloc_combined_wsabuf(LPWSABUF buf, DWORD count, DWORD *outlen)
 	DWORD size = 0;
 	PUCHAR retbuf;
 	for (i = 0; i < count; i++) {
-		size += buf->len;
+		size += buf[i].len;
 	}
 
 	retbuf = malloc(size);
@@ -44,8 +44,8 @@ static PVOID alloc_combined_wsabuf(LPWSABUF buf, DWORD count, DWORD *outlen)
 
 	size = 0;
 	for (i = 0; i < count; i++) {
-		memcpy(&retbuf[size], buf->buf, buf->len);
-		size += buf->len;
+		memcpy(&retbuf[size], buf[i].buf, buf[i].len);
+		size += buf[i].len;
 	}
 	*outlen = size;
 	return retbuf;
@@ -133,7 +133,7 @@ HOOKDEF(int, WSAAPI, send,
     __in  int flags
 ) {
     int ret = Old_send(s, buf, len, flags);
-    LOQ_sockerr("network", "ib", "socket", s, "buffer", ret < 1 ? len : ret, buf);
+    LOQ_sockerr("network", "ic", "socket", s, "buffer", ret < 1 ? len : ret, buf);
     return ret;
 }
 
@@ -149,7 +149,7 @@ HOOKDEF(int, WSAAPI, sendto,
 	char ip[16] = { 0 };
 	int port = 0;
     get_ip_port(to, ip, &port);
-    LOQ_sockerr("network", "ibsi", "socket", s, "buffer", ret < 1 ? len : ret, buf,
+    LOQ_sockerr("network", "icsi", "socket", s, "buffer", ret < 1 ? len : ret, buf,
         "ip", ip, "port", port);
     return ret;
 }
@@ -161,7 +161,7 @@ HOOKDEF(int, WSAAPI, recv,
     __in   int flags
 ) {
     int ret = Old_recv(s, buf, len, flags);
-    LOQ_sockerr("network", "ib", "socket", s, "buffer", ret < 1 ? 0 : ret, buf);
+    LOQ_sockerr("network", "ic", "socket", s, "buffer", ret < 1 ? 0 : ret, buf);
     return ret;
 }
 
@@ -179,7 +179,7 @@ HOOKDEF(int, WSAAPI, recvfrom,
     if(ret > 0) {
         get_ip_port(from, ip, &port);
     }
-    LOQ_sockerr("network", "ibsi", "socket", s, "buffer", ret < 1 ? 0 : ret, buf,
+    LOQ_sockerr("network", "icsi", "socket", s, "buffer", ret < 1 ? 0 : ret, buf,
         "ip", ip, "port", port);
     return ret;
 }
@@ -275,7 +275,7 @@ HOOKDEF(int, WSAAPI, setsockopt,
     __in  int optlen
 ) {
     int ret = Old_setsockopt(s, level, optname, optval, optlen);
-    LOQ_sockerr("network", "ippb", "socket", s, "level", level, "optname", optname,
+    LOQ_sockerr("network", "ippc", "socket", s, "level", level, "optname", optname,
         "optval", optlen, optval);
     return ret;
 }
@@ -346,7 +346,7 @@ HOOKDEF(int, WSAAPI, WSARecv,
 	if (lpOverlapped == NULL && lpCompletionRoutine == NULL) {
 		DWORD outlen;
 		PVOID buf = alloc_combined_wsabuf(lpBuffers, dwBufferCount, &outlen);
-		LOQ_sockerr("network", "iBI", "socket", s, "Buffer", lpNumberOfBytesRecvd, buf, "NumberOfBytesReceived", lpNumberOfBytesRecvd);
+		LOQ_sockerr("network", "iCI", "socket", s, "Buffer", lpNumberOfBytesRecvd, buf, "NumberOfBytesReceived", lpNumberOfBytesRecvd);
 		if (buf)
 			free(buf);
 	}
@@ -377,7 +377,7 @@ HOOKDEF(int, WSAAPI, WSARecvFrom,
 	if (lpOverlapped == NULL && lpCompletionRoutine == NULL) {
 		DWORD outlen;
 		PVOID buf = alloc_combined_wsabuf(lpBuffers, dwBufferCount, &outlen);
-		LOQ_sockerr("network", "isiBI", "socket", s, "ip", ip, "port", port, "Buffer", lpNumberOfBytesRecvd, buf, "NumberOfBytesReceived", lpNumberOfBytesRecvd);
+		LOQ_sockerr("network", "isiCI", "socket", s, "ip", ip, "port", port, "Buffer", lpNumberOfBytesRecvd, buf, "NumberOfBytesReceived", lpNumberOfBytesRecvd);
 		if (buf)
 			free(buf);
 	}
@@ -402,7 +402,7 @@ HOOKDEF(int, WSAAPI, WSASend,
         dwFlags, lpOverlapped, lpCompletionRoutine);
 	DWORD outlen;
 	PVOID buf = alloc_combined_wsabuf(lpBuffers, dwBufferCount, &outlen);
-	LOQ_sockerr("network", "ib", "Socket", s, "Buffer", outlen, buf);
+	LOQ_sockerr("network", "ic", "Socket", s, "Buffer", outlen, buf);
 	if (buf)
 		free(buf);
     return ret;
@@ -431,7 +431,7 @@ HOOKDEF(int, WSAAPI, WSASendTo,
     ret = Old_WSASendTo(s, lpBuffers, dwBufferCount, lpNumberOfBytesSent,
         dwFlags, lpTo, iToLen, lpOverlapped, lpCompletionRoutine);
 	buf = alloc_combined_wsabuf(lpBuffers, dwBufferCount, &outlen);
-	LOQ_sockerr("network", "isib", "socket", s, "ip", ip, "port", port, "Buffer", outlen, buf);
+	LOQ_sockerr("network", "isic", "socket", s, "ip", ip, "port", port, "Buffer", outlen, buf);
 	if (buf)
 		free(buf);
     return ret;
@@ -494,7 +494,7 @@ HOOKDEF(BOOL, PASCAL, ConnectEx,
 	char ip[16] = { 0 };
 	int port = 0;
     get_ip_port(name, ip, &port);
-    LOQ_bool("network", "iBsi", "socket", s, "SendBuffer", lpdwBytesSent, lpSendBuffer,
+    LOQ_bool("network", "iCsi", "socket", s, "SendBuffer", lpdwBytesSent, lpSendBuffer,
         "ip", ip, "port", port);
     return ret;
 }
@@ -582,6 +582,6 @@ HOOKDEF(int, WSAAPI, WSASendMsg,
 
 	get_ip_port(lpMsg->name, ip, &port);
 
-	LOQ_sockerr("network", "Bsi", "MsgBuffer", lpNumberOfBytesSent, buf, "ip", ip, "port", port);
+	LOQ_sockerr("network", "Csi", "MsgBuffer", lpNumberOfBytesSent, buf, "ip", ip, "port", port);
 	return ret;
 }
