@@ -168,7 +168,7 @@ static __inline ULONG_PTR get_stack_bottom(void)
 CRITICAL_SECTION ProcessDumpCriticalSection;
 
 // We need an export for IAT patching
-__declspec (naked dllexport) void dummy()
+__declspec (dllexport) void dummy()
 {
 }
 
