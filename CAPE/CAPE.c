@@ -1790,8 +1790,6 @@ int DumpProcess(HANDLE hProcess, LPVOID BaseAddress, LPVOID NewEP)
 int DumpPE(LPVOID Buffer)
 //**************************************************************************************
 {
-    SetCapeMetaData(INJECTION_PE, 0, NULL, (PVOID)Buffer);
-
     if (DumpCount < DUMP_MAX && ScyllaDumpPE((DWORD_PTR)Buffer))
     {
         DumpCount++;
