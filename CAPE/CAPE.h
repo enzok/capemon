@@ -141,6 +141,8 @@ enum {
 
     DATADUMP                = 0x66,
 
+	REGSETVAL				= 0x69,
+
     STACK_REGION            = 0x6c,
 
     UPX                     = 0x1000

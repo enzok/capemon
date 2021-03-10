@@ -862,6 +862,11 @@ void parse_config_line(char* line)
         }
         else if (stricmp(key, "no-iat"))
             DebugOutput("CAPE debug - unrecognised key %s.\n", key);
+		else if (!strcmp(key, "dump-reg")) {
+			g_config.dump_reg = value[0] == '1';
+			if (g_config.dump_reg)
+				DebugOutput("Dumping of large created registry values enabled.\n");
+		}
     }
 }
 

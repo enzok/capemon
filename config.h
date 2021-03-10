@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #define EXCLUSION_MAX 128
+#define REGISTRY_VALUE_SIZE_MIN 1024
 
 struct _g_config {
     // name of the pipe to communicate with cuckoo
@@ -184,6 +185,9 @@ struct _g_config {
 
     // Zero hook set
     int zerohook;
+
+	// Dump full registry value
+	int dump_reg;
 
 	char *break_on_apiname;
 	char *break_on_modname;
