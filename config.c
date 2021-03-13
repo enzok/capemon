@@ -28,13 +28,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SINGLE_STEP_LIMIT 0x4000  // default unless specified in web ui
 #define DROPPED_LIMIT 100
 
-#define BP_EXEC        0x00
-#define BP_WRITE       0x01
-#define BP_RESERVED    0x02
+#define BP_EXEC		0x00
+#define BP_WRITE	   0x01
+#define BP_RESERVED	0x02
 #define BP_READWRITE   0x03
 #define DoClearZeroFlag 1
 #define DoSetZeroFlag   2
-#define PrintEAX        3
+#define PrintEAX		3
 
 extern void DebugOutput(_In_ LPCTSTR lpOutputString, ...);
 extern char *our_dll_path;
@@ -49,93 +49,93 @@ extern SIZE_T DumpSize;
 
 void parse_config_line(char* line)
 {
-    unsigned int i;
-    unsigned int vallen;
+	unsigned int i;
+	unsigned int vallen;
 
-    // split key=value
-    char *p = strchr(line, '=');
-    if (p != NULL) {
-        const char *key = line;
-        char *value = p + 1;
-        if (value[0] == '$')
-            return;
-        *p = 0;
-        vallen = (unsigned int)strlen(value);
-        if (!strcmp(key, "pipe")) {
-            for (i = 0; i < vallen; i++)
-                g_config.pipe_name[i] = (wchar_t)(unsigned short)value[i];
-        }
-        else if (!strcmp(key, "logserver")) {
-            strncpy(g_config.logserver, value,
-                ARRAYSIZE(g_config.logserver));
-        }
-        else if (!strcmp(key, "results")) {
-            strncpy(g_config.results, value,
-                ARRAYSIZE(g_config.results) - 1);
-            for (i = 0; i < ARRAYSIZE(g_config.results); i++)
-                g_config.w_results[i] = (wchar_t)(unsigned short)g_config.results[i];
-        }
-        else if (!strcmp(key, "pythonpath")) {
-            strncpy(g_config.pythonpath, value,
-                ARRAYSIZE(g_config.pythonpath) - 1);
-            for (i = 0; i < ARRAYSIZE(g_config.pythonpath); i++)
-                g_config.w_pythonpath[i] = (wchar_t)(unsigned short)g_config.pythonpath[i];
-            DebugOutput("Python path set to '%ws'.\n", g_config.w_pythonpath);
-        }
-        else if (!strcmp(key, "file-of-interest")) {
-            unsigned int len = (unsigned int)strlen(value);
-            if (len > 1) {
-                if (value[1] == ':') {
-                    // is a file
-                    char *tmp = calloc(1, MAX_PATH);
-                    ensure_absolute_ascii_path(tmp, value);
-                    g_config.file_of_interest = ascii_to_unicode_dup(tmp);
-                    free(tmp);
-                    // if the file of interest is our own executable, then don't do any special handling
-                    if (wcsicmp(our_process_path_w, g_config.file_of_interest))
-                        g_config.suspend_logging = TRUE;
-                }
-                else {
-                    // is a URL
-                    g_config.url_of_interest = ascii_to_unicode_dup(value);
-                    g_config.suspend_logging = TRUE;
-                }
-            }
-        }
-        else if (!strcmp(key, "referrer")) {
-            g_config.w_referrer = ascii_to_unicode_dup(value);
-            g_config.referrer = strdup(value);
-        }
-        else if (!strcmp(key, "analyzer")) {
-            strncpy(g_config.analyzer, value,
-                ARRAYSIZE(g_config.analyzer)-1);
-            for (i = 0; i < ARRAYSIZE(g_config.analyzer); i++)
-                g_config.w_analyzer[i] = (wchar_t)(unsigned short)g_config.analyzer[i];
-            wcscpy(g_config.dllpath, g_config.w_analyzer);
-            if (wcslen(g_config.dllpath) < ARRAYSIZE(g_config.dllpath) - 5)
-                wcscat(g_config.dllpath, L"\\dll\\");
-        }
-        else if (!strcmp(key, "shutdown-mutex")) {
-            strncpy(g_config.shutdown_mutex, value,
-                ARRAYSIZE(g_config.shutdown_mutex));
-        }
-        else if (!strcmp(key, "first-process")) {
-            g_config.first_process = value[0] == '1';
-        }
-        else if (!strcmp(key, "startup-time")) {
-            g_config.startup_time = atoi(value);
-        }
-        else if (!strcmp(key, "debug")) {
-            g_config.debug = atoi(value);
-        }
-        else if (!strcmp(key, "hook-type")) {
+	// split key=value
+	char *p = strchr(line, '=');
+	if (p != NULL) {
+		const char *key = line;
+		char *value = p + 1;
+		if (value[0] == '$')
+			return;
+		*p = 0;
+		vallen = (unsigned int)strlen(value);
+		if (!strcmp(key, "pipe")) {
+			for (i = 0; i < vallen; i++)
+				g_config.pipe_name[i] = (wchar_t)(unsigned short)value[i];
+		}
+		else if (!strcmp(key, "logserver")) {
+			strncpy(g_config.logserver, value,
+				ARRAYSIZE(g_config.logserver));
+		}
+		else if (!strcmp(key, "results")) {
+			strncpy(g_config.results, value,
+				ARRAYSIZE(g_config.results) - 1);
+			for (i = 0; i < ARRAYSIZE(g_config.results); i++)
+				g_config.w_results[i] = (wchar_t)(unsigned short)g_config.results[i];
+		}
+		else if (!strcmp(key, "pythonpath")) {
+			strncpy(g_config.pythonpath, value,
+				ARRAYSIZE(g_config.pythonpath) - 1);
+			for (i = 0; i < ARRAYSIZE(g_config.pythonpath); i++)
+				g_config.w_pythonpath[i] = (wchar_t)(unsigned short)g_config.pythonpath[i];
+			DebugOutput("Python path set to '%ws'.\n", g_config.w_pythonpath);
+		}
+		else if (!strcmp(key, "file-of-interest")) {
+			unsigned int len = (unsigned int)strlen(value);
+			if (len > 1) {
+				if (value[1] == ':') {
+					// is a file
+					char *tmp = calloc(1, MAX_PATH);
+					ensure_absolute_ascii_path(tmp, value);
+					g_config.file_of_interest = ascii_to_unicode_dup(tmp);
+					free(tmp);
+					// if the file of interest is our own executable, then don't do any special handling
+					if (wcsicmp(our_process_path_w, g_config.file_of_interest))
+						g_config.suspend_logging = TRUE;
+				}
+				else {
+					// is a URL
+					g_config.url_of_interest = ascii_to_unicode_dup(value);
+					g_config.suspend_logging = TRUE;
+				}
+			}
+		}
+		else if (!strcmp(key, "referrer")) {
+			g_config.w_referrer = ascii_to_unicode_dup(value);
+			g_config.referrer = strdup(value);
+		}
+		else if (!strcmp(key, "analyzer")) {
+			strncpy(g_config.analyzer, value,
+				ARRAYSIZE(g_config.analyzer)-1);
+			for (i = 0; i < ARRAYSIZE(g_config.analyzer); i++)
+				g_config.w_analyzer[i] = (wchar_t)(unsigned short)g_config.analyzer[i];
+			wcscpy(g_config.dllpath, g_config.w_analyzer);
+			if (wcslen(g_config.dllpath) < ARRAYSIZE(g_config.dllpath) - 5)
+				wcscat(g_config.dllpath, L"\\dll\\");
+		}
+		else if (!strcmp(key, "shutdown-mutex")) {
+			strncpy(g_config.shutdown_mutex, value,
+				ARRAYSIZE(g_config.shutdown_mutex));
+		}
+		else if (!strcmp(key, "first-process")) {
+			g_config.first_process = value[0] == '1';
+		}
+		else if (!strcmp(key, "startup-time")) {
+			g_config.startup_time = atoi(value);
+		}
+		else if (!strcmp(key, "debug")) {
+			g_config.debug = atoi(value);
+		}
+		else if (!strcmp(key, "hook-type")) {
 #ifndef _WIN64
-            if (!strcmp(value, "direct"))
-                g_config.hook_type = HOOK_JMP_DIRECT;
-            else if (!strcmp(value, "indirect"))
-                g_config.hook_type = HOOK_JMP_INDIRECT;
-            else if (!strcmp(value, "safe"))
-                g_config.hook_type = HOOK_SAFEST;
+			if (!strcmp(value, "direct"))
+				g_config.hook_type = HOOK_JMP_DIRECT;
+			else if (!strcmp(value, "indirect"))
+				g_config.hook_type = HOOK_JMP_INDIRECT;
+			else if (!strcmp(value, "safe"))
+				g_config.hook_type = HOOK_SAFEST;
 #endif
         }
         else if (!strcmp(key, "disable_hook_content")) {
@@ -872,111 +872,111 @@ void parse_config_line(char* line)
 
 int read_config(void)
 {
-    char buf[32768], config_fname[MAX_PATH], analyzer_path[MAX_PATH];
-    FILE *fp;
+	char buf[32768], config_fname[MAX_PATH], analyzer_path[MAX_PATH];
+	FILE *fp;
 
-    // look for the config in monitor directory
-    strncpy(analyzer_path, our_dll_path, strlen(our_dll_path));
-    PathRemoveFileSpec(analyzer_path); // remove filename
-    sprintf(config_fname, "%s\\%u.ini", analyzer_path, GetCurrentProcessId());
+	// look for the config in monitor directory
+	strncpy(analyzer_path, our_dll_path, strlen(our_dll_path));
+	PathRemoveFileSpec(analyzer_path); // remove filename
+	sprintf(config_fname, "%s\\%u.ini", analyzer_path, GetCurrentProcessId());
 
-    fp = fopen(config_fname, "r");
+	fp = fopen(config_fname, "r");
 
-    // backward compatibility
-    if (fp == NULL) {
-        memset(config_fname, 0, sizeof(config_fname));
-        sprintf(config_fname, "C:\\%u.ini", GetCurrentProcessId());
-        fp = fopen(config_fname, "r");
-    }
+	// backward compatibility
+	if (fp == NULL) {
+		memset(config_fname, 0, sizeof(config_fname));
+		sprintf(config_fname, "C:\\%u.ini", GetCurrentProcessId());
+		fp = fopen(config_fname, "r");
+	}
 
-    // for debugging purposes
-    if (fp == NULL) {
-        memset(config_fname, 0, sizeof(config_fname));
-        sprintf(config_fname, "%s\\config.ini", analyzer_path);
-        fp = fopen(config_fname, "r");
-        if (fp == NULL)
-            return 0;
-    }
+	// for debugging purposes
+	if (fp == NULL) {
+		memset(config_fname, 0, sizeof(config_fname));
+		sprintf(config_fname, "%s\\config.ini", analyzer_path);
+		fp = fopen(config_fname, "r");
+		if (fp == NULL)
+			return 0;
+	}
 
-    // config defaults
-    g_config.force_sleepskip = -1;
+	// config defaults
+	g_config.force_sleepskip = -1;
 #ifdef _WIN64
-    g_config.hook_type = HOOK_JMP_INDIRECT;
+	g_config.hook_type = HOOK_JMP_INDIRECT;
 #else
-    g_config.hook_type = HOOK_HOTPATCH_JMP_INDIRECT;
+	g_config.hook_type = HOOK_HOTPATCH_JMP_INDIRECT;
 #endif
-    g_config.procdump = 1;
-    g_config.procmemdump = 0;
-    g_config.dropped_limit = 0;
-    g_config.injection = 1;
-    g_config.compression = 1;
-    g_config.caller_dump = 1;
-    g_config.api_rate_cap = 1;
-    g_config.yarascan = 1;
+	g_config.procdump = 1;
+	g_config.procmemdump = 0;
+	g_config.dropped_limit = 0;
+	g_config.injection = 1;
+	g_config.compression = 1;
+	g_config.caller_dump = 1;
+	g_config.api_rate_cap = 1;
+	g_config.yarascan = 1;
 
-    StepLimit = SINGLE_STEP_LIMIT;
+	StepLimit = SINGLE_STEP_LIMIT;
 
-    memset(g_config.results, 0, MAX_PATH);
-    memset(g_config.analyzer, 0, MAX_PATH);
-    memset(g_config.pythonpath, 0, MAX_PATH);
-    memset(g_config.w_results, 0, sizeof(WCHAR)*MAX_PATH);
-    memset(g_config.w_analyzer, 0, sizeof(WCHAR)*MAX_PATH);
-    memset(g_config.w_pythonpath, 0, sizeof(WCHAR)*MAX_PATH);
+	memset(g_config.results, 0, MAX_PATH);
+	memset(g_config.analyzer, 0, MAX_PATH);
+	memset(g_config.pythonpath, 0, MAX_PATH);
+	memset(g_config.w_results, 0, sizeof(WCHAR)*MAX_PATH);
+	memset(g_config.w_analyzer, 0, sizeof(WCHAR)*MAX_PATH);
+	memset(g_config.w_pythonpath, 0, sizeof(WCHAR)*MAX_PATH);
 
-    memset(buf, 0, sizeof(buf));
-    while (fgets(buf, sizeof(buf), fp) != NULL)
-    {
-        // cut off the newline
-        char *p = strchr(buf, '\r');
-        if (p != NULL) *p = 0;
-        p = strchr(buf, '\n');
-        if (p != NULL) *p = 0;
+	memset(buf, 0, sizeof(buf));
+	while (fgets(buf, sizeof(buf), fp) != NULL)
+	{
+		// cut off the newline
+		char *p = strchr(buf, '\r');
+		if (p != NULL) *p = 0;
+		p = strchr(buf, '\n');
+		if (p != NULL) *p = 0;
 
-        parse_config_line(buf);
-    }
+		parse_config_line(buf);
+	}
 
-    /* don't suspend logging if this isn't the first process or if we want all the logs */
-    if (!g_config.first_process || g_config.full_logs)
-        g_config.suspend_logging = FALSE;
+	/* don't suspend logging if this isn't the first process or if we want all the logs */
+	if (!g_config.first_process || g_config.full_logs)
+		g_config.suspend_logging = FALSE;
 
-    if (!wcslen(g_config.w_pythonpath)) {
-        char* DummyString = "default";
-        strncpy(g_config.pythonpath, DummyString, strlen(DummyString));
-        for (unsigned int i = 0; i < ARRAYSIZE(g_config.pythonpath); i++)
-            g_config.w_pythonpath[i] = (wchar_t)(unsigned short)g_config.pythonpath[i];
-        DebugOutput("Python path defaulted to '%ws'.\n", g_config.w_pythonpath);
-    }
+	if (!wcslen(g_config.w_pythonpath)) {
+		char* DummyString = "default";
+		strncpy(g_config.pythonpath, DummyString, strlen(DummyString));
+		for (unsigned int i = 0; i < ARRAYSIZE(g_config.pythonpath); i++)
+			g_config.w_pythonpath[i] = (wchar_t)(unsigned short)g_config.pythonpath[i];
+		DebugOutput("Python path defaulted to '%ws'.\n", g_config.w_pythonpath);
+	}
 
-    /* if no option supplied for dropped limit set a sensible value */
-    if (!g_config.dropped_limit) {
-        g_config.dropped_limit = DROPPED_LIMIT;
-        DebugOutput("Dropped file limit defaulting to %d.\n", DROPPED_LIMIT);
-    }
+	/* if no option supplied for dropped limit set a sensible value */
+	if (!g_config.dropped_limit) {
+		g_config.dropped_limit = DROPPED_LIMIT;
+		DebugOutput("Dropped file limit defaulting to %d.\n", DROPPED_LIMIT);
+	}
 
-    if (g_config.tlsdump) {
-        g_config.debugger = 0;
-        g_config.procdump = 0;
-        g_config.procmemdump = 0;
-        g_config.dropped_limit = 0;
-        g_config.injection = 0;
-        g_config.compression = 0;
-        g_config.caller_dump = 0;
-        g_config.api_rate_cap = 0;
-        g_config.yarascan = 0;
-        g_config.bp0 = 0;
-        g_config.bp1 = 0;
-        g_config.bp2 = 0;
-        g_config.br0 = 0;
-        g_config.br1 = 0;
-        g_config.br2 = 0;
-        memset(g_config.break_on_return, 0, ARRAYSIZE(g_config.break_on_return));
-    }
+	if (g_config.tlsdump) {
+		g_config.debugger = 0;
+		g_config.procdump = 0;
+		g_config.procmemdump = 0;
+		g_config.dropped_limit = 0;
+		g_config.injection = 0;
+		g_config.compression = 0;
+		g_config.caller_dump = 0;
+		g_config.api_rate_cap = 0;
+		g_config.yarascan = 0;
+		g_config.bp0 = 0;
+		g_config.bp1 = 0;
+		g_config.bp2 = 0;
+		g_config.br0 = 0;
+		g_config.br1 = 0;
+		g_config.br2 = 0;
+		memset(g_config.break_on_return, 0, ARRAYSIZE(g_config.break_on_return));
+	}
 
-    if (TraceDepthLimit == 0xFFFFFFFF)
-        TraceDepthLimit = 1;
+	if (TraceDepthLimit == 0xFFFFFFFF)
+		TraceDepthLimit = 1;
 
-    fclose(fp);
-    if (!g_config.standalone)
-        DeleteFileA(config_fname);
-    return 1;
+	fclose(fp);
+	if (!g_config.standalone)
+		DeleteFileA(config_fname);
+	return 1;
 }
