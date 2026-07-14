@@ -34,6 +34,12 @@ extern void DebugOutput(_In_ LPCTSTR lpOutputString, ...);
 extern void ErrorOutput(_In_ LPCTSTR lpOutputString, ...);
 extern DWORD GetTimeStamp(LPVOID Address);
 
+#ifdef _WIN64
+// asm entry shim (InstrHook64.asm): captures the caller's r12-r15 before the C handler runs,
+// then tail-jumps into New_LdrpCallInitRoutine. Used as new_func for the LdrpCallInitRoutine hook.
+extern void Capture_LdrpCallInitRoutine(void);
+#endif
+
 struct _g_config g_config;
 volatile int dummy_val;
 hook_t* hooks;
@@ -100,7 +106,13 @@ hook_t full_hooks[] = {
 	HOOK_SPECIAL(ntdll, NtCreateUserProcess),
 	HOOK_SPECIAL(kernel32, CreateProcessInternalW),
 
+#ifdef _WIN64
+	// new_func points at the asm capture shim so the caller's r12-r15 are snapshotted at hook
+	// entry; the shim then jumps into New_LdrpCallInitRoutine. Rest of the entry matches HOOK().
+	{L"ntdll", "LdrpCallInitRoutine", NULL, NULL, &Capture_LdrpCallInitRoutine, (void **)&Old_LdrpCallInitRoutine, NULL, FALSE, FALSE, 0, FALSE},
+#else
 	HOOK(ntdll, LdrpCallInitRoutine),
+#endif
 	HOOK(ntdll, NtAllocateVirtualMemory),
 	HOOK(ntdll, NtAllocateVirtualMemoryEx),
 	HOOK(ntdll, NtReadVirtualMemory),

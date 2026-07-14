@@ -46,6 +46,19 @@ static int tasksched_sent = 0;
 static int interop_sent = 0;
 static int shell_sent = 0;
 
+#ifdef _WIN64
+extern ULONG_PTR CallOriginalWithEntryRegs(PVOID TargetFunction, ULONG_PTR Arg1, ULONG_PTR Arg2, ULONG_PTR Arg3, ULONG_PTR Arg4);
+
+// Per-thread snapshot of the non-volatile registers (r12-r15) as they were on entry to the
+// LdrpCallInitRoutine hook. The Capture_LdrpCallInitRoutine asm shim (new_func for this hook)
+// fills it before the C handler's prologue can reuse those registers as scratch;
+// CallOriginalWithEntryRegs reloads it so the DllMain re-entered through the original
+// LdrpCallInitRoutine observes the caller's true r12-r15 (the malware VM context) instead of
+// the handler's scratch, which was the cause of the sporadic r13-corruption crash under IAT patching.
+static __declspec(thread) ULONG_PTR EntryRegSlot[4];
+ULONG_PTR *GetEntryRegSlot(void) { return EntryRegSlot; }
+#endif
+
 HOOKDEF_NOTAIL(WINAPI, LdrLoadDll,
 	__in_opt	PWCHAR PathToFile,
 	__in_opt	PULONG Flags,
@@ -193,7 +206,11 @@ HOOKDEF(BOOL, WINAPI, LdrpCallInitRoutine,
 		}
 	}
 
+#ifdef _WIN64
+	BOOL ret = (BOOL)CallOriginalWithEntryRegs((PVOID)Old_LdrpCallInitRoutine, (ULONG_PTR)InitRoutine, (ULONG_PTR)DllHandle, (ULONG_PTR)Reason, (ULONG_PTR)Context);
+#else
 	BOOL ret = Old_LdrpCallInitRoutine(InitRoutine, DllHandle, Reason, Context);
+#endif
 
 	if (Reason == 1 && MappedModule)
 		LOQ_bool("system", "uppi", "MappedPath", ModulePath, "BaseAddress", DllHandle, "InitRoutine", InitRoutine, "Reason", Reason);
